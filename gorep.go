@@ -20,7 +20,7 @@ var inv_ext map[string]bool
 
 func main() {
 	flag.Parse()
-
+	// TODO: handle incorrect input
 	getReady(flag.Arg(0))
 	crawlFolder()
 	wg.Wait()
@@ -29,18 +29,18 @@ func main() {
 }
 
 func getReady(lookingFor string) {
+	// put cpu cores to work
 	numCPUs := runtime.NumCPU()
 	runtime.GOMAXPROCS(numCPUs)
-	setupInvalidFileExtMap()
+	setupInvalidFileExtSet()
+
 	// TODO: handle worker pool and queue better
 	max_workers = 6765 + 2584
 	work_queue = make(chan string, 46368)
 	for i := 0; i < max_workers-2584; i++ {
 		go searchWorker(work_queue)
 	}
-	// enough workers active, continue flow
-	// wake the rest concurrently
-	go func() {
+	go func() { // wake the rest concurrently
 		for i := 0; i < max_workers-6765; i++ {
 			go searchWorker(work_queue)
 		}
@@ -92,7 +92,7 @@ func notValidFileExtension(path string) bool {
 	return inv_ext[ext]
 }
 
-func setupInvalidFileExtMap() {
+func setupInvalidFileExtSet() {
 	// TODO: exclude files better
 	inv_ext = map[string]bool{
 		".exe": true, ".dll": true, ".msi": true,
