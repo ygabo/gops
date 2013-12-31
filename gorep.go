@@ -68,9 +68,9 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 func searchWorker(work_queue <-chan string) {
 	wg.Add(1)
 	defer wg.Done()
+	kmp := kmp
 
 	for path := range work_queue {
-		kmp := kmp
 		x, err := ioutil.ReadFile(path)
 		if err != nil {
 			continue //fail gracefully
