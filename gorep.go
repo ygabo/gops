@@ -26,6 +26,9 @@ var max_workers int
 var work_queue chan Work
 
 func visit(path string, f os.FileInfo, err error) error {
+	if f.IsDir() || notValidFileExtension(path) {
+		return nil
+	}
 	work_queue <- Work{path, f}
 	return nil
 }
@@ -51,9 +54,6 @@ func searchWorker(work_queue <-chan Work) {
 			if !open {
 				return
 			}
-			if info.f.IsDir() || notValidFileExtension(info.path) {
-				continue
-			}
 			kmp := kmp
 			x, _ := ioutil.ReadFile(info.path)
 
@@ -77,6 +77,7 @@ func setupInvalidFileExtMap() {
 
 func getReady(lookingFor string) {
 	setupInvalidFileExtMap()
+	// TODO: handle number of workers better
 	max_workers = 6765 + 2584
 	work_queue = make(chan Work, 46368)
 	for i := 0; i < max_workers-2584; i++ {
