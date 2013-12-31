@@ -24,6 +24,45 @@ var inv_ext map[string]bool
 var max_workers int
 var work_queue chan Work
 
+func main() {
+	flag.Parse()
+
+	getReady(flag.Arg(0))
+	crawlFolder()
+	wg.Wait()
+
+	fmt.Printf("Done.")
+}
+
+func getReady(lookingFor string) {
+	numCPUs := runtime.NumCPU()
+	runtime.GOMAXPROCS(numCPUs)
+	setupInvalidFileExtMap()
+	// TODO: handle worker pool and queue better
+	max_workers = 6765 + 2584
+	work_queue = make(chan Work, 46368)
+	for i := 0; i < max_workers-2584; i++ {
+		go searchWorker(work_queue)
+	}
+	// enough workers active, continue flow
+	// wake the rest concurrently
+	go func() {
+		for i := 0; i < max_workers-6765; i++ {
+			go searchWorker(work_queue)
+		}
+	}()
+
+	lookingfor = flag.Arg(0)
+	fmt.Println("Searching for ->", lookingfor)
+	kmp, _ = gokmp.NewKMP(lookingfor)
+}
+
+func crawlFolder() {
+	current := "."
+	filepath.Walk(current, visit)
+	close(work_queue)
+}
+
 func visit(path string, f os.FileInfo, err error) error {
 	if f.IsDir() || notValidFileExtension(path) {
 		return nil
@@ -54,57 +93,19 @@ func searchWorker(work_queue <-chan Work) {
 	}
 }
 
-func main() {
-	flag.Parse()
-
-	getReady(flag.Arg(0))
-	crawlFolder()
-	wg.Wait()
-
-	fmt.Printf("Done.")
-}
-
-func getReady(lookingFor string) {
-	numCPUs := runtime.NumCPU()
-	runtime.GOMAXPROCS(numCPUs)
-	setupInvalidFileExtMap()
-	// TODO: handle number of workers better
-	max_workers = 6765 + 2584
-	work_queue = make(chan Work, 46368)
-	for i := 0; i < max_workers-2584; i++ {
-		go searchWorker(work_queue)
-	}
-	go func() {
-		for i := 0; i < max_workers-6765; i++ {
-			go searchWorker(work_queue)
-		}
-	}()
-
-	lookingfor = flag.Arg(0)
-	fmt.Println("Searching for ->", lookingfor)
-	kmp, _ = gokmp.NewKMP(lookingfor)
-}
-
-func crawlFolder() {
-	current := "."
-	filepath.Walk(current, visit)
-	close(work_queue)
+func notValidFileExtension(path string) bool {
+	ext := filepath.Ext(path)
+	return inv_ext[ext]
 }
 
 func setupInvalidFileExtMap() {
 	// TODO: exclude files better
 	inv_ext = map[string]bool{
-		"": true, ".exe": true, ".dll": true,
-		".obj": true, ".bsc": true,
-		".ilk": true, ".pdb": true,
-		".msi": true, ".idb": true,
-		".sdf": true, ".psd": true,
+		".exe": true, ".dll": true, ".msi": true,
+		".obj": true, ".bsc": true, ".pdb": true,
+		".ilk": true, ".idb": true, ".psd": true,
+		".sdf": true, "": true,
 	}
-}
-
-func notValidFileExtension(path string) bool {
-	ext := filepath.Ext(path)
-	return inv_ext[ext]
 }
 
 func printPath(path string) {
