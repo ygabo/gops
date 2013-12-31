@@ -69,20 +69,14 @@ func searchWorker(work_queue <-chan string) {
 	wg.Add(1)
 	defer wg.Done()
 
-	for {
-		select {
-		case path, open := <-work_queue:
-			if !open {
-				return
-			}
-			kmp := kmp
-			x, err := ioutil.ReadFile(path)
-			if err != nil {
-				continue //fail gracefully
-			}
-			if kmp.ContainedIn(string(x)) {
-				go printPath(path)
-			}
+	for path := range work_queue {
+		kmp := kmp
+		x, err := ioutil.ReadFile(path)
+		if err != nil {
+			continue //fail gracefully
+		}
+		if kmp.ContainedIn(string(x)) {
+			go printPath(path)
 		}
 	}
 }
