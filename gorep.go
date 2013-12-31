@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"sync"
-	"time"
 )
 
 type Work struct {
@@ -33,17 +32,6 @@ func visit(path string, f os.FileInfo, err error) error {
 	return nil
 }
 
-func notValidFileExtension(path string) bool {
-	ext := filepath.Ext(path)
-	return inv_ext[ext]
-}
-
-func printPath(path string) {
-	wg.Add(1)
-	defer wg.Done()
-	fmt.Println(path)
-}
-
 func searchWorker(work_queue <-chan Work) {
 	wg.Add(1)
 	defer wg.Done()
@@ -64,18 +52,19 @@ func searchWorker(work_queue <-chan Work) {
 	}
 }
 
-func setupInvalidFileExtMap() {
-	// TODO: exclude files better
-	inv_ext = map[string]bool{
-		"": true, ".exe": true, ".dll": true,
-		".obj": true, ".bsc": true,
-		".ilk": true, ".pdb": true,
-		".msi": true, ".idb": true,
-		".sdf": true, ".psd": true,
-	}
+func main() {
+	flag.Parse()
+  
+	getReady(flag.Arg(0))
+	crawlFolder()
+	wg.Wait()
+  
+	fmt.Printf("Done.")
 }
 
 func getReady(lookingFor string) {
+	numCPUs := runtime.NumCPU()
+	runtime.GOMAXPROCS(numCPUs)
 	setupInvalidFileExtMap()
 	// TODO: handle number of workers better
 	max_workers = 6765 + 2584
@@ -100,16 +89,24 @@ func crawlFolder() {
 	close(work_queue)
 }
 
-func main() {
-	numCPUs := runtime.NumCPU()
-	runtime.GOMAXPROCS(numCPUs)
-	flag.Parse()
-	start := time.Now()
+func setupInvalidFileExtMap() {
+	// TODO: exclude files better
+	inv_ext = map[string]bool{
+		"": true, ".exe": true, ".dll": true,
+		".obj": true, ".bsc": true,
+		".ilk": true, ".pdb": true,
+		".msi": true, ".idb": true,
+		".sdf": true, ".psd": true,
+	}
+}
 
-	getReady(flag.Arg(0))
-	crawlFolder()
-	wg.Wait()
+func notValidFileExtension(path string) bool {
+	ext := filepath.Ext(path)
+	return inv_ext[ext]
+}
 
-	elapsed := time.Since(start)
-	fmt.Printf("took %s", elapsed)
+func printPath(path string) {
+	wg.Add(1)
+	defer wg.Done()
+	fmt.Println(path)
 }
