@@ -10,9 +10,10 @@
 
 ##### Todo
 * Better memory handling of opened files
-* Case sensitivity
+* Better options
+..* case sensitivity 
+..* regex
 * Better error handling
-* Better flag commands
 * Profile and optimize
 * Tests
 * Regex
