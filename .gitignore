@@ -1,2 +1,5 @@
 test*
+wgrep*
+*.prof
+*.txt
 ql/
