@@ -43,8 +43,10 @@ func searchWorker(work_queue <-chan Work) {
 				return
 			}
 			kmp := kmp
-			x, _ := ioutil.ReadFile(info.path)
-
+			x, err := ioutil.ReadFile(info.path)
+			if err != nil {
+				continue //fail gracefully
+			}
 			if kmp.ContainedIn(string(x)) {
 				go printPath(info.path)
 			}
@@ -54,11 +56,11 @@ func searchWorker(work_queue <-chan Work) {
 
 func main() {
 	flag.Parse()
-  
+
 	getReady(flag.Arg(0))
 	crawlFolder()
 	wg.Wait()
-  
+
 	fmt.Printf("Done.")
 }
 
