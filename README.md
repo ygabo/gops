@@ -9,11 +9,12 @@
 * UTF-8 compliant.
 
 ##### Todo
-* Worker pool vs massive upside of goroutine creation
 * Better memory handling of opened files
 * Case sensitivity
-* Error handling
+* Better error handling
+* Better flag commands
 * Regex
+
 
 ###### HowTo
 
