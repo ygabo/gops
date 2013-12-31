@@ -30,34 +30,33 @@ func visit(path string, f os.FileInfo, err error) error {
 	return nil
 }
 
-
 func notValidFileExtension(path string) bool {
-  ext := filepath.Ext(path)
-  return inv_ext[ext]
+	ext := filepath.Ext(path)
+	return inv_ext[ext]
 }
 
 func printPath(path string) {
-  wg.Add(1)
-  defer wg.Done()
-  fmt.Println(path)
+	wg.Add(1)
+	defer wg.Done()
+	fmt.Println(path)
 }
 
 func searchWorker(work_queue <-chan Work) {
 	wg.Add(1)
 	defer wg.Done()
-	
+
 	for {
 		select {
 		case info, open := <-work_queue:
 			if !open {
 				return
 			}
-			if info.f.IsDir() || notValidFileExtension(info.path){
+			if info.f.IsDir() || notValidFileExtension(info.path) {
 				continue
 			}
 			kmp := kmp
-			x, _ := ioutil.ReadFile(info.path)     
-      
+			x, _ := ioutil.ReadFile(info.path)
+
 			if kmp.ContainedIn(string(x)) {
 				go printPath(info.path)
 			}
@@ -65,37 +64,36 @@ func searchWorker(work_queue <-chan Work) {
 	}
 }
 
-func setupInvalidFileExtMap(){
-  // TODO: exclude files better
-  inv_ext = map[string]bool{
-    "":true,     ".exe":true, ".dll":true,
-    ".obj":true, ".bsc":true,
-    ".ilk":true, ".pdb":true,
-    ".msi":true, ".idb":true,
-    ".sdf":true, ".psd":true,
-    
-  }
+func setupInvalidFileExtMap() {
+	// TODO: exclude files better
+	inv_ext = map[string]bool{
+		"": true, ".exe": true, ".dll": true,
+		".obj": true, ".bsc": true,
+		".ilk": true, ".pdb": true,
+		".msi": true, ".idb": true,
+		".sdf": true, ".psd": true,
+	}
 }
 
-func getReady(lookingFor string){
-  setupInvalidFileExtMap()
-  max_workers = 6765+2584  
+func getReady(lookingFor string) {
+	setupInvalidFileExtMap()
+	max_workers = 6765 + 2584
 	work_queue = make(chan Work, 46368)
 	for i := 0; i < max_workers-2584; i++ {
-			go searchWorker(work_queue)
-	}	
+		go searchWorker(work_queue)
+	}
 	go func() {
 		for i := 0; i < max_workers-6765; i++ {
 			go searchWorker(work_queue)
 		}
 	}()
-  
+
 	lookingfor = flag.Arg(0)
 	fmt.Println("Searching for ->", lookingfor)
 	kmp, _ = gokmp.NewKMP(lookingfor)
 }
 
-func crawlFolder(){
+func crawlFolder() {
 	current := "."
 	filepath.Walk(current, visit)
 	close(work_queue)
@@ -106,9 +104,9 @@ func main() {
 	runtime.GOMAXPROCS(numCPUs)
 	flag.Parse()
 	start := time.Now()
-  
+
 	getReady(flag.Arg(0))
-  crawlFolder()
+	crawlFolder()
 	wg.Wait()
 
 	elapsed := time.Since(start)
