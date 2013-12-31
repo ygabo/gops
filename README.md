@@ -12,6 +12,7 @@
 * Worker pool vs massive upside of goroutine creation
 * Better memory handling of opened files
 * Case sensitivity
+* Error handling
 * Regex
 
 ###### HowTo
