@@ -13,12 +13,13 @@
 * Case sensitivity
 * Better error handling
 * Better flag commands
+* Profile and optimize
 * Regex
 
 
 ###### HowTo
 
-1. [install Go.](ttp://golang.org/doc/install)
+1. [install Go.](http://golang.org/doc/install)
 2. Build the executable. (go build or go install)
 3. gorep "SearchMe"
 
