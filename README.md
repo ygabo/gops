@@ -14,6 +14,7 @@
 * Better error handling
 * Better flag commands
 * Profile and optimize
+* Tests
 * Regex
 
 
