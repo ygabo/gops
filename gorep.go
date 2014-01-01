@@ -35,7 +35,7 @@ func getReady(lookingFor string) {
 	setupInvalidFileExtSet()
 
 	// TODO: handle worker pool and queue better
-	max_workers = 6765 + 2584
+	max_workers = 9349
 	work_queue = make(chan string, 46368)
 	for i := 0; i < max_workers-2584; i++ {
 		go searchWorker(work_queue)
@@ -68,14 +68,17 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 func searchWorker(work_queue <-chan string) {
 	wg.Add(1)
 	defer wg.Done()
-	kmp := kmp
+	localkmp := kmp
 
 	for path := range work_queue {
 		x, err := ioutil.ReadFile(path)
-		if err != nil {
+		if err != nil || x == nil {
 			continue //fail gracefully
 		}
-		if kmp.ContainedIn(string(x)) {
+		if localkmp == nil {
+			localkmp = kmp
+		}
+		if localkmp.ContainedIn(string(x)) {
 			go printPath(path)
 		}
 	}
