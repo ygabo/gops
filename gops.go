@@ -11,12 +11,12 @@ import (
 	"sync"
 )
 
+var inv_ext map[string]bool
+var lookingfor string
 var kmp *gokmp.KMP
 var max_workers int
-var lookingfor string
 var wg sync.WaitGroup
 var work_queue chan string
-var inv_ext map[string]bool
 
 func main() {
 	flag.Parse()
