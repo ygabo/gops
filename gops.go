@@ -114,7 +114,6 @@ func searchWorker(work_queue chan string) {
 		}
 
 		if index > len(x) {
-			x = nil
 			index = len(x)
 		}
 		if !utf8.ValidString(string(x[:index])) {
