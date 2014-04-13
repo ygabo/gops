@@ -14,7 +14,7 @@ import (
 )
 
 var END_OF_WORK = ""
-var MAX_OPEN_FILES int = 17711
+var MAX_OPEN_FILES uint64 = 17711
 var WORK_QUEUE_SIZE int = 28657
 var inv_ext map[string]bool
 var lookingfor string
@@ -34,10 +34,7 @@ func main() {
 
 	// tell workers it's over
 	work_queue <- END_OF_WORK
-
-	for i := 0; i < max_workers; i++ {
-		<-done
-	}
+	wg.Wait()
 
 	fmt.Println("Done.")
 }
@@ -50,6 +47,7 @@ func getReady(lookingFor string) {
 	}
 	runtime.GOMAXPROCS(numCPUs)
 
+	// Set max open files
 	var rLimit syscall.Rlimit
 	err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit)
 	if err != nil {
@@ -60,8 +58,10 @@ func getReady(lookingFor string) {
 	if err != nil {
 		fmt.Println("Error Setting Rlimit ", err)
 	} else {
-		max_workers = 9349
+		max_workers = 6765
 	}
+
+	// Setup workers
 	work_queue = make(chan string, WORK_QUEUE_SIZE)
 	done = make(chan bool)
 
@@ -74,8 +74,8 @@ func getReady(lookingFor string) {
 		}
 	}()
 
+	// Get KMP ready
 	lookingfor = flag.Arg(0)
-
 	fmt.Println("Searching for ->", lookingfor)
 	kmp, _ = gokmp.NewKMP(lookingfor)
 }
@@ -95,6 +95,8 @@ func visit(path string, fileInfo os.FileInfo, err error) error {
 }
 
 func searchWorker(work_queue chan string) {
+	wg.Add(1)
+	defer wg.Done()
 	localkmp := kmp
 	var x []byte
 	var err error
@@ -126,5 +128,4 @@ func searchWorker(work_queue chan string) {
 			fmt.Println(path)
 		}
 	}
-	done <- true
 }
