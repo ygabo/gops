@@ -2,4 +2,6 @@ test*
 wgrep*
 *.prof
 *.txt
+*.swp
+gops
 ql/

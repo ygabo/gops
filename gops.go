@@ -3,14 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/paddie/gokmp"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
 	"sync"
-	"syscall"
 	"unicode/utf8"
+
+	"github.com/paddie/gokmp"
 )
 
 var END_OF_WORK = ""
@@ -47,19 +47,22 @@ func getReady(lookingFor string) {
 	}
 	runtime.GOMAXPROCS(numCPUs)
 
-	// Set max open files
-	var rLimit syscall.Rlimit
-	err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit)
-	if err != nil {
-		fmt.Println("Error Getting Rlimit ", err)
-	}
-	rLimit.Cur = MAX_OPEN_FILES
-	err = syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
-	if err != nil {
-		fmt.Println("Error Setting Rlimit ", err)
-	} else {
-		max_workers = 6765
-	}
+	/*
+		This doesn't even work in Windows... TODO: fix properly
+		// Set max open files
+		var rLimit syscall.Rlimit
+		err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit)
+		if err != nil {
+			fmt.Println("Error Getting Rlimit ", err)
+		}
+		rLimit.Cur = MAX_OPEN_FILES
+		err = syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
+		if err != nil {
+			fmt.Println("Error Setting Rlimit ", err)
+		} else {
+			max_workers = MAX_OPEN_FILES / 3
+		}
+	*/
 
 	// Setup workers
 	work_queue = make(chan string, WORK_QUEUE_SIZE)
